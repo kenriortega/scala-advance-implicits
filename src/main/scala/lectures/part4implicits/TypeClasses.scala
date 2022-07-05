@@ -57,29 +57,10 @@ object TypeClasses extends App {
     override def serialize(value: User): String = s"${value.name}"
   }
 
-  // Type Class
-  trait MyTypeClassTemplate[T] {
-    def action(value: T): String
-  }
-
-  object MyTypeClassTemplate {
-    def apply[T](implicit instance: MyTypeClassTemplate[T]) = instance
-  }
 
   /*Equality
   * */
-  trait Equal[T] {
-    def apply(a: T, b: T): Boolean
-  }
 
-  implicit object NameEquality extends Equal[User] {
-    override def apply(a: User, b: User): Boolean = a.name == b.name
-  }
-
-  object FullEquality extends Equal[User] {
-    override def apply(a: User, b: User): Boolean =
-      a.name == b.name && a.email == b.email
-  }
 
   // part 2
   object HTMLSerializer {
@@ -99,17 +80,22 @@ object TypeClasses extends App {
   // access to the entire type interface
   println(HTMLSerializer[User].serialize(jhon))
 
-  /*
-  * Exercise: implement the TC pattern for the equality tc
-  * */
-
-  object Equal {
-    def apply[T](a: T, b: T)(implicit equalizer: Equal[T]) =
-      equalizer.apply(a, b)
+  // part 3
+  implicit class HTMLEnrichment[T](value: T) {
+    def toHTML(implicit serializer: HTMLSerializer[T]): String = serializer.serialize(value)
   }
 
-  val anotherJhon = User("Jhon", 322, "j2@mail.com")
-  println(Equal.apply(jhon, anotherJhon))
+  println(jhon.toHTML) // println(new HTMLEnrichment[User](jhon).toHTML(UserSerializer)
+  // COOL!
+  /*
+  *  - extend to new types
+  *  - choose implementation
+  * */
+  println(2.toHTML)
+  println(jhon.toHTML(PartialUserSerializer))
+  /*
+  * type class itself {...}
+  * type class instances (some of which are implicit) PartialUserSerializer,UserSerializer, ...
+  *  conversion with implicit classes  HTMLEnrichment */
 
-  // AD-HOC polymorphism
 }
